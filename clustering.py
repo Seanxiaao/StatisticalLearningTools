@@ -1,7 +1,7 @@
 import random
 import decoraters
 import numpy as np
-from functools import wraps
+import matplotlib.pyplot as plt
 
 class clustering(object):
 
@@ -25,6 +25,7 @@ class clustering(object):
 
         self.val = np.array(val) #should be sample * attribute arrarys
         self.sample = sample
+        self.length = len(sample)
         self.error = None
 
 
@@ -37,14 +38,13 @@ class clustering(object):
             return norm(x,y)
 
         #random initialize labels#
-        labels = np.array([(index, random.randint(0, k - 1)) for index in range(len(self.sample))],\
+        labels = np.array([(index, random.randint(0, k - 1)) for index in range(self.length)],\
                           dtype = [('index', int), ('cluster', int)])
         #print(labels)
         #clusters = np.array([labels[labels['cluster'] == i]['index'] for i in range(k)])
-        clusters, centroids = [] , []
         epsilon0 = 9999999
         while True:
-
+            clusters, centroids = [], []
             #get clusters
             for i in range(k):
                 sub_cluster = labels[labels['cluster'] == i]['index']
@@ -59,17 +59,60 @@ class clustering(object):
                 labels[item][-1] = dis.index(min(dis))
                 temp += min(dis)
 
-            clusters, centroids = [], []
             #print(epsilon0 - temp)
             if epsilon0 - temp <= 10 ** (-4):
-                return labels['cluster']
+                return labels['cluster'], centroids
             else:
                 epsilon0 = temp
 
 
     @decoraters.register
-    def soft_clustering(self):
-        pass
+    def soft_clustering(self, k):
+
+        """return a graph that describe the clusters of  \
+           the initial data points"""
+
+        # initals #
+        label, centroids = self.k_means(k)
+
+        h_ik = np.zeros([self.length, k])
+        for i in range(self.length):
+            h_ik[i][label[i]] = 1
+
+        sum_hik = [sum(h_ik[:, t]) for t in range(k)]
+        pi = np.array(sum_hik) / self.length
+        mu = centroids
+        sigma =   [sum([h_ik[i][t] * np.dot(np.matrix(self.val[i] - mu[t]).T, np.matrix(self.val[i] - mu[t])) \
+                   for i in range(self.length)]) / sum_hik[t] for t in range(k)]
+
+        temp = 0
+        while temp < 5:
+
+            #E - step#
+            for i in range(self.length):
+
+
+                h_ik_temp = [ pi[t] * pow(np.linalg.det(sigma[t]), -0.5) * np.exp(-0.5 * np.matrix(self.val[i] - mu[t]) \
+                             * np.linalg.inv(sigma[t]) * np.matrix(self.val[i] - mu[t]).T )  for t in range(k) ]
+
+
+                for t in range(k):
+                    h_ik[i][t] = h_ik_temp[t] / sum(h_ik_temp)
+
+            sum_hik = [sum(h_ik[:, t]) for t in range(k)]
+
+            #M - step#
+
+            pi = [ sum_hik[t] / self.length for t in range(k)]
+            mu = [ sum([h_ik[i][t] * self.val[i] for i in range(self.length)]) / sum_hik[t] for t in range(k) ]
+            sigma =   [sum([h_ik[i][t] * np.dot(np.matrix(self.val[i] - mu[t]).T, np.matrix(self.val[i] - mu[t])) \
+                   for i in range(self.length)]) / sum_hik[t] for t in range(k)]
+
+            print(pi, mu, sigma)
+
+            temp += 1
+
+        return
 
     def fit(self):
         pass
@@ -79,6 +122,5 @@ class clustering(object):
     def euclidean(x, y):
         assert type(x) and type(y) is np.ndarray
         return sum((x - y) ** 2)
-
 
 
