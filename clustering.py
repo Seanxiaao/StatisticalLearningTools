@@ -1,15 +1,34 @@
 import random
+import decoraters
 import numpy as np
+from functools import wraps
 
 class clustering(object):
+
+    """
+    making clustering for the unsupervised learning
+
+    >>> X = [[1.3, 1.8, 4.8, 7.1, 5.0, 5.2, 8.0], \
+         [1.5, 6.9, 3.9, -5.5, -8.5, -3.9, -5.5], \
+         [6.5, 1.6, 8.2, -7.2, -8.7, -7.9, -5.2], \
+         [3.8, 8.3, 4.7, 6.4, 7.5, 3.2, 7.4], \
+         [-7.3, -1.8, -2.1, 2.7, 6.8, 4.8, 6.2] \
+        ]
+    >>> X = np.array(X).T
+    >>> x_cluster = clustering(X, [[0, 1, 2, 3, 4, 5, 6]])
+    >>> x_cluster.k_means(2)
+    [0,0,0,1,1,1,1]
+
+    """
 
     def __init__(self, val, sample):
 
         self.val = np.array(val) #should be sample * attribute arrarys
         self.sample = sample
+        self.error = None
 
 
-
+    @decoraters.register
     def k_means(self, k):
 
         """k-means method for supervised learning"""
@@ -23,9 +42,9 @@ class clustering(object):
         #print(labels)
         #clusters = np.array([labels[labels['cluster'] == i]['index'] for i in range(k)])
         clusters, centroids = [] , []
-        epsilon0 = 999
+        epsilon0 = 9999999
         while True:
-            
+
             #get clusters
             for i in range(k):
                 sub_cluster = labels[labels['cluster'] == i]['index']
@@ -41,24 +60,20 @@ class clustering(object):
                 temp += min(dis)
 
             clusters, centroids = [], []
+            #print(epsilon0 - temp)
             if epsilon0 - temp <= 10 ** (-4):
                 return labels['cluster']
             else:
                 epsilon0 = temp
 
 
-
-    def soft_k_means(self):
+    @decoraters.register
+    def soft_clustering(self):
         pass
 
     def fit(self):
         pass
 
-    #def setattr(self, func):
-    #    def wrapper(*args):
-    #
-    #        return func(*args)
-    #    return wrapper
 
     @staticmethod
     def euclidean(x, y):
@@ -66,14 +81,4 @@ class clustering(object):
         return sum((x - y) ** 2)
 
 
-X = [[1.3, 1.8, 4.8, 7.1, 5.0, 5.2, 8.0],
-              [1.5, 6.9, 3.9, -5.5, -8.5, -3.9, -5.5],
-              [6.5, 1.6, 8.2, -7.2, -8.7, -7.9, -5.2],
-              [3.8, 8.3, 4.7, 6.4, 7.5, 3.2, 7.4],
-              [-7.3, -1.8, -2.1, 2.7, 6.8, 4.8, 6.2]
-              ]
-X = np.array(X).T
 
-a = clustering(X, [0, 1, 2, 3, 4, 5, 6])
-print(a.val)
-print(a.k_means(2))
