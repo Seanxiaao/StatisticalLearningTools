@@ -86,7 +86,7 @@ class clustering(object):
                    for i in range(self.length)]) / sum_hik[t] for t in range(k)]
 
         temp = 0
-        while temp < 5:
+        while True:
 
             #E - step#
             for i in range(self.length):
@@ -101,18 +101,28 @@ class clustering(object):
 
             sum_hik = [sum(h_ik[:, t]) for t in range(k)]
 
+            pi_old, mu_old, sigma_old = pi, mu, sigma
             #M - step#
 
             pi = [ sum_hik[t] / self.length for t in range(k)]
             mu = [ sum([h_ik[i][t] * self.val[i] for i in range(self.length)]) / sum_hik[t] for t in range(k) ]
             sigma =   [sum([h_ik[i][t] * np.dot(np.matrix(self.val[i] - mu[t]).T, np.matrix(self.val[i] - mu[t])) \
                    for i in range(self.length)]) / sum_hik[t] for t in range(k)]
-
-            print(pi, mu, sigma)
+            # array return
+            if self.euclidean(np.array(pi), np.array(pi_old)) < 10 ** -9:
+                   print("the mean is {}".format(mu))
+                   print("the amplitude is {}".format(pi))
+                   print("the covariance matrix is {}".format(sigma))
+                   return [np.argmax(item) for item in h_ik], mu
 
             temp += 1
+            if temp > 100:
+                print ("looping more than 100 times, break")
+                print("the mean is {}".format(mu))
+                print("the amplitude is {}".format(pi))
+                print("the covariance matrix is {}".format(sigma))
 
-        return
+                return [np.argmax(item) for item in h_ik], mu
 
     def fit(self):
         pass
