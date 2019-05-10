@@ -1,5 +1,6 @@
 import numpy as np
 import random, math
+
 class DR(object):
 
     def __init__(self, data):
@@ -10,6 +11,10 @@ class DR(object):
         :param k: the dimension original data reduced to
         :return: the first k principal components
         """
+        # data = X = np.array([[-1, 1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
+        # result = DimensionReduction.DR(data)
+        # print(result.PCA(2))
+
         meanVa = np.mean(self.data)
         Cdata = self.data - meanVa
         d_cov =  np.dot(Cdata.T, Cdata) #covarience matrix
